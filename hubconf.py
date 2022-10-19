@@ -131,10 +131,7 @@ def output_label(label):
 a = next(iter(train_dataloader))
 a[0].size()
 
-kernel_size=3
-padding=1
-in_channels=1
-out_channels=32
+
 
 class FashionCNN(nn.Module):
     
@@ -142,7 +139,7 @@ class FashionCNN(nn.Module):
         super(FashionCNN, self).__init__()
         
         self.layer1 = nn.Sequential(
-            nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size, padding=padding),
+            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, padding=1),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2)
@@ -215,15 +212,17 @@ for epoch in range(num_epochs):
         # Optimizing the parameters
         optimizer.step()
 
-
         count+=1
-        if (count % 10==0):
+        if (count%10==0):
           print("epoch: {}, Loss: {}".format(epoch+1, loss.data))
-
-    
         count += 1
 
-if not (count % 50):    # It's same as "if count % 50 == 0"
+"""Testing the model"""
+
+from torchmetrics import Precision
+from torchmetrics import Recall
+
+with torch.no_grad():    
       total = 0
       correct = 0
   
@@ -245,9 +244,12 @@ if not (count % 50):    # It's same as "if count % 50 == 0"
       loss_list.append(loss.data)
       iteration_list.append(count)
       accuracy_list.append(accuracy)
+      precision = Precision(average='macro', num_classes=3)
+      recall = Recall(average='micro')
+      f1 = F1Score(num_classes=3)
         
       if not (count % 500):
-          print("Iteration: {}, Loss: {}, Accuracy: {}%".format(count, loss.data, accuracy))
+          print("Iteration: {}, Loss: {}, Accuracy: {} precision:{} recall:{} f1:{}%".format(count, loss.data, accuracy,precision(predictions, labels),recall(predictions, labels),f1))
 
 """# Sample code invocation"""
 
