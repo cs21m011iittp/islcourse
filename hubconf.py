@@ -20,91 +20,18 @@ transform_pil_to_tensor = ToTensor()
 """# Evaluation will load different dataset or different subsets
 
 ## Student list
+
+## Any data set may be loaded
 """
 
-student_list = ['cs19b001@iittp.ac.in',
-  'cs19b002@iittp.ac.in',
-  'cs19b003@iittp.ac.in',
-  'cs19b004@iittp.ac.in',
-  'cs19b005@iittp.ac.in',
-  'cs19b006@iittp.ac.in',
-  'cs19b007@iittp.ac.in',
-  'cs19b008@iittp.ac.in',
-  'cs19b009@iittp.ac.in',
-  'cs19b010@iittp.ac.in',
-  'cs19b011@iittp.ac.in',
-  'cs19b012@iittp.ac.in',
-  'cs19b013@iittp.ac.in',
-  'cs19b014@iittp.ac.in',
-  'cs19b015@iittp.ac.in',
-  'cs19b016@iittp.ac.in',
-  'cs19b017@iittp.ac.in',
-  'cs19b018@iittp.ac.in',
-  'cs19b019@iittp.ac.in',
-  'cs19b020@iittp.ac.in',
-  'cs19b021@iittp.ac.in',
-  'cs19b022@iittp.ac.in',
-  'cs19b023@iittp.ac.in',
-  'cs19b024@iittp.ac.in',
-  'cs19b025@iittp.ac.in',
-  'cs19b026@iittp.ac.in',
-  'cs19b027@iittp.ac.in',
-  'cs19b028@iittp.ac.in',
-  'cs19b029@iittp.ac.in',
-  'cs19b030@iittp.ac.in',
-  'cs19b031@iittp.ac.in',
-  'cs19b032@iittp.ac.in',
-  'cs19b033@iittp.ac.in',
-  'cs19b034@iittp.ac.in',
-  'cs19b035@iittp.ac.in',
-  'cs19b036@iittp.ac.in',
-  'cs19b037@iittp.ac.in',
-  'cs19b038@iittp.ac.in',
-  'cs19b039@iittp.ac.in',
-  'cs19b040@iittp.ac.in',
-  'cs19b041@iittp.ac.in',
-  'cs19b042@iittp.ac.in',
-  'cs19b043@iittp.ac.in',
-  'cs19b044@iittp.ac.in',
-  'cs19b045@iittp.ac.in',
-  'cs19b046@iittp.ac.in',
-  'cs19b047@iittp.ac.in',
-  'cs19b048@iittp.ac.in',
-  'cs19b049@iittp.ac.in',
-  'cs19b050@iittp.ac.in',
-  'cs21m001@iittp.ac.in',
-  'cs21m002@iittp.ac.in',
-  'cs21m003@iittp.ac.in',
-  'cs21m004@iittp.ac.in',
-  'cs21m005@iittp.ac.in',
-  'cs21m006@iittp.ac.in',
-  'cs21m007@iittp.ac.in',
-  'cs21m008@iittp.ac.in',
-  'cs21m009@iittp.ac.in',
-  'cs19b010@iittp.ac.in',
-  'cs19b011@iittp.ac.in',
-  'cs19b012@iittp.ac.in',
-  'cs19b013@iittp.ac.in',
-  'cs19b014@iittp.ac.in',
-  'cs19b015@iittp.ac.in',
-  'cs18b015@iittp.ac.in',
-  'cs18b030@iittp.ac.in',
-  'cs20m012@iittp.ac.in']
-
-ug_list = []
-pg_list = []
-
-for s in student_list:
-  roll = s.split('@')[0]
-  if roll[4]=='b':
-    ug_list.append(roll)
-  else:
-    pg_list.append(roll)
-
-print (len(ug_list))
-print (len(pg_list))
-
-"""## Any data set may be loaded"""
+import torch
+from torch import nn
+from torch.utils.data import Dataset, DataLoader
+from torchvision import datasets
+from torchvision.transforms import ToTensor, ToPILImage
+from PIL import Image
+from torch.autograd import Variable
+import matplotlib.pyplot as plt
 
 def load_data():
 
@@ -127,14 +54,6 @@ def load_data():
     return training_data, test_data
 
 """## sizes may be modified"""
-
-import torch
-from torch import nn
-from torch.utils.data import Dataset, DataLoader
-from torchvision import datasets
-from torchvision.transforms import ToTensor, ToPILImage
-from PIL import Image
-import matplotlib.pyplot as plt
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -212,13 +131,18 @@ def output_label(label):
 a = next(iter(train_dataloader))
 a[0].size()
 
+kernel_size=3
+padding=1
+in_channels=1
+out_channels=32
+
 class FashionCNN(nn.Module):
     
     def __init__(self):
         super(FashionCNN, self).__init__()
         
         self.layer1 = nn.Sequential(
-            nn.Conv2d(in_channels=1, out_channels=32, kernel_size=3, padding=1),
+            nn.Conv2d(in_channels=in_channels, out_channels=out_channels, kernel_size=kernel_size, padding=padding),
             nn.BatchNorm2d(32),
             nn.ReLU(),
             nn.MaxPool2d(kernel_size=2, stride=2)
@@ -256,8 +180,11 @@ learning_rate = 0.001
 optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 print(model)
 
-num_epochs = 5
+"""Training the model"""
+
+num_epochs = 2
 count = 0
+
 # Lists for visualization of loss and accuracy 
 loss_list = []
 iteration_list = []
@@ -272,12 +199,12 @@ for epoch in range(num_epochs):
         # Transfering images and labels to GPU if available
         images, labels = images.to(device), labels.to(device)
     
-        '''train = FashionCNN(images.view(100, 1, 28, 28))
-        labels = FashionCNN(labels)'''
+        train = Variable(images.view(64, 1, 28, 28))
+        labels = Variable(labels)
         
         # Forward pass 
-        outputs = model(images)
-        loss = error(images, labels)
+        outputs = model(train)
+        loss = error(outputs,labels)
         
         # Initializing a gradient as 0 so there is no mixing of gradient among the batches
         optimizer.zero_grad()
@@ -287,8 +214,40 @@ for epoch in range(num_epochs):
         
         # Optimizing the parameters
         optimizer.step()
+
+
+        count+=1
+        if (count % 10==0):
+          print("epoch: {}, Loss: {}".format(epoch+1, loss.data))
+
     
         count += 1
+
+if not (count % 50):    # It's same as "if count % 50 == 0"
+      total = 0
+      correct = 0
+  
+      for images, labels in test_dataloader:
+          images, labels = images.to(device), labels.to(device)
+          labels_list.append(labels)
+      
+          test = Variable(images.view(100, 1, 28, 28))
+      
+          outputs = model(test)
+      
+          predictions = torch.max(outputs, 1)[1].to(device)
+          predictions_list.append(predictions)
+          correct += (predictions == labels).sum()
+      
+          total += len(labels)
+      
+      accuracy = correct * 100 / total
+      loss_list.append(loss.data)
+      iteration_list.append(count)
+      accuracy_list.append(accuracy)
+        
+      if not (count % 500):
+          print("Iteration: {}, Loss: {}, Accuracy: {}%".format(count, loss.data, accuracy))
 
 """# Sample code invocation"""
 
