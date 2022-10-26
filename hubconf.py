@@ -174,7 +174,9 @@ def get_model(train_loader,num_epochs=2):
     train_network(train_loader,optimizer,loss_fun,10)
     return model
 
-def test_model():
+def test_model(model1, test_data_loader):
+    a,p,r,f1 = test(test_data_loader, model1, loss_fun)
+    return a,p,r,f1
 
 examplerollnum = 'cs21m011'
 
