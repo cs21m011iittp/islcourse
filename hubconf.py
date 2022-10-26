@@ -138,6 +138,10 @@ def get_model(train_loader,num_epochs=2):
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device")
 
+!pip install torchmetrics
+
+from torchmetrics import F1Score,Recall,Precision
+
 def test(dataloader, model, loss_fn):
     size = len(dataloader.dataset)
     num_batches = len(dataloader)
@@ -153,6 +157,15 @@ def test(dataloader, model, loss_fn):
     test_loss /= num_batches
     correct /= size
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+
+    precision = Precision(average='macro', num_classes=10)
+    print('Precision: ',precision(pred,y))
+
+    recall = Recall(average='macro', num_classes=10)
+    print('Recall: ',recall(pred,y))
+
+    f1 = F1Score(num_classes=10)
+    print('F1 Score: ',f1(pred, y))
 
 test(test_loader, model, loss_fun)
 
