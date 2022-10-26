@@ -175,8 +175,8 @@ def get_model(train_loader,num_epochs=2):
     return model
 
 def test_model(model1, test_data_loader):
-    a,p,r,f1 = test(test_data_loader, model1, loss_fun)
-    return a,p,r,f1
+	  a,p,r,f1 = test(test_data_loader, model1, loss_fun)
+	  return a,p,r,f1
 
 examplerollnum = 'cs21m011'
 
@@ -200,10 +200,6 @@ print (model)
 #a,p,r,f1 = torch.hub.load(examplerepo,'test_model',model1=model,test_data_loader=test_data_loader1,force_reload=True)
 
 #print (a,p,r,f1)
-
-def test_model(model1, test_data_loader):
-	a,p,r,f1 = test(test_data_loader, model1, loss_fun)
-	return a,p,r,f1
 
 test_data_loader1 = test_loader
 
