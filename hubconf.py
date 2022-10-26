@@ -7,6 +7,8 @@ Original file is located at
     https://colab.research.google.com/drive/1f_zKNlgle9djaagVvDtJoic-TFa21GEI
 """
 
+#!pip install torchmetrics
+
 import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
@@ -59,7 +61,7 @@ def create_dataloaders(training_data, test_data, batch_size=64):
         
     return train_dataloader, test_dataloader
 
-print (len(set([y for x,y in training_data])))
+print(len(set([y for x,y in training_data])))
 
 train_loader, test_loader = create_dataloaders(training_data, test_data, batch_size = 32)
 
@@ -162,7 +164,7 @@ def test(dataloader, model, loss_fn):
     f1 = F1Score(num_classes=10)
     print('F1 Score: ',f1(pred, y))
 
-    return [accuracy(pred, y).item(),precision(pred,y).item(),recall(pred,y).item(),f1(pred,y).item()]
+    return accuracy(pred, y).item(),precision(pred,y).item(),recall(pred,y).item(),f1(pred,y).item()
 
 test(test_loader, model, loss_fun)
 
@@ -177,33 +179,3 @@ def get_model(train_loader,num_epochs=2):
 def test_model(model1, test_data_loader):
 	  a,p,r,f1 = test(test_data_loader, model1, loss_fun)
 	  return a,p,r,f1
-
-examplerollnum = 'cs21m011'
-
-examplerepo = examplerollnum + 'iittp/islcourse:exercise1'
-
-entrypoints = torch.hub.list(examplerepo,force_reload=True)
-
-print (entrypoints)
-
-train_data_loader1 = train_loader
-test_data_loader1 = test_loader
-
-model = torch.hub.load(examplerepo,'get_model',train_loader=train_data_loader1,e=5, force_reload=True)
-# config1 = [(1,10,(3,3),1,'same'), (10,3,(5,5),1,'same'), (3,1,(7,7),1,'same')]
-# model = torch.hub.load(examplerepo,'get_model_advanced',train_data_loader=train_data_loader1,n_epochs=10, lr=1e-4,config=config1, force_reload=True)
-
-print (model)
-
-#test_data_loader1 = None
-
-#a,p,r,f1 = torch.hub.load(examplerepo,'test_model',model1=model,test_data_loader=test_data_loader1,force_reload=True)
-
-#print (a,p,r,f1)
-
-test_data_loader1 = test_loader
-
-a,p,r,f1 = torch.hub.load(examplerepo,'test_model',model1=model,test_data_loader=test_data_loader1,force_reload=True)
-
-print (a,p,r,f1)
-
