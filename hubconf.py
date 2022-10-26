@@ -80,13 +80,13 @@ class cs21m011(nn.Module):
         return x
 
 y = (len(set([y for x,y in training_data])))
-model = cs21m011()
+print(y)
 
 #train the network
-def train_network(train_loader, optimizer,criteria, e):
-  for epoch in range(e):  # loop over the dataset multiple times
+def train_network(train_loader, optimizer,criteria, num_epochs):
+  n_total_steps=len(train_loader)
 
-    running_loss = 0.0
+  for epoch in range(num_epochs):  # loop over the dataset multiple times
     for i, data in enumerate(train_loader, 0):
         # get the inputs; data is a list of [inputs, labels]
         inputs, labels = data
@@ -96,6 +96,7 @@ def train_network(train_loader, optimizer,criteria, e):
 
         # forward + backward + optimize
         outputs = model(inputs)
+
         #print(outputs.shape, labels.shape)
         tmp = torch.nn.functional.one_hot(labels, num_classes= 10)
         loss = criteria(outputs, tmp)
@@ -103,10 +104,9 @@ def train_network(train_loader, optimizer,criteria, e):
         optimizer.step()
 
         # print statistics
-        running_loss += loss.item()
-        if i % 2000 == 1999:    # print every 2000 mini-batches
-            print(f'[{epoch + 1}, {i + 1:5d}] loss: {running_loss / 2000:.3f}')
-            running_loss = 0.0
+        if(i % 2000 == 0):    # print every 2000 mini-batches
+            print(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}')
+        
 
   print('Finished Training')
 
@@ -164,18 +164,25 @@ def test(dataloader, model, loss_fn):
     f1 = F1Score(num_classes=10)
     print('F1 Score: ',f1(pred, y))
 
-    return accuracy(pred, y).item(),precision(pred,y).item(),recall(pred,y).item(),f1(pred,y).item()
+    return accuracy(pred, y).item(), precision(pred,y).item(), recall(pred,y).item(), f1(pred,y).item()
 
-test(test_loader, model, loss_fun)
+a,p,r,f1=test(test_loader, model, loss_fun)
+print('Testing finished\n\n')
+
+print(f'accuracy: {a:.4f}')
+print(f'precision: {p:.4f}')
+print(f'recall: {r:.4f}')
+print(f'F1 score: {f1:.4f}')
 
 def get_model(train_loader,num_epochs=2):
     model = cs21m011()
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    optimizer = optim.SGD(model.parameters(), lr=0.001)
     loss_val = loss_fun(y_pred, y_ground)
 
     train_network(train_loader,optimizer,loss_fun,10)
     return model
 
-def test_model(model1, test_data_loader):
+def test_model(model1,test_data_loader):
 	  a,p,r,f1 = test(test_data_loader, model1, loss_fun)
 	  return a,p,r,f1
+
