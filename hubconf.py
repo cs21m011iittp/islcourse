@@ -138,7 +138,7 @@ def get_model(train_loader,num_epochs=2):
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device")
 
-from torchmetrics import F1Score,Recall,Precision
+from torchmetrics import F1Score,Recall,Precision,Accuracy
 
 def test(dataloader, model, loss_fn):
     size = len(dataloader.dataset)
@@ -156,6 +156,9 @@ def test(dataloader, model, loss_fn):
     correct /= size
     print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
 
+    accuracy = Accuracy()
+    print('Accuracy: ',accuracy(pred, y))
+
     precision = Precision(average='macro', num_classes=10)
     print('Precision: ',precision(pred,y))
 
@@ -165,7 +168,7 @@ def test(dataloader, model, loss_fn):
     f1 = F1Score(num_classes=10)
     print('F1 Score: ',f1(pred, y))
 
-    return [(100*correct),precision(pred,y).item(),recall(pred,y).item(),f1(pred,y).item()]
+    return [accuracy(pred, y).item(),precision(pred,y).item(),recall(pred,y).item(),f1(pred,y).item()]
 
 test(test_loader, model, loss_fun)
 
@@ -180,19 +183,17 @@ print (entrypoints)
 train_data_loader1 = train_loader
 test_data_loader1 = test_loader
 
-model = torch.hub.load(examplerepo,'get_model',train_data=train_loader,n_epochs=5, force_reload=True)
+model = torch.hub.load(examplerepo,'get_model',train_data=train_data_loader1,n_epochs=5, force_reload=True)
 # config1 = [(1,10,(3,3),1,'same'), (10,3,(5,5),1,'same'), (3,1,(7,7),1,'same')]
 # model = torch.hub.load(examplerepo,'get_model_advanced',train_data_loader=train_data_loader1,n_epochs=10, lr=1e-4,config=config1, force_reload=True)
 
 print (model)
 
-test_data_loader1 = None
+test_data_loader1 = test_loader
 
 a,p,r,f1 = torch.hub.load(examplerepo,'test_model',model1=model,test_data_loader=test_data_loader1,force_reload=True)
 
 print (a,p,r,f1)
-
-
 
 
 
