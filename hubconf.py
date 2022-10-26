@@ -127,13 +127,7 @@ print(loss_val)
 
 optimizer = optim.SGD(model.parameters(), lr=0.001)
 
-def get_model(train_loader,num_epochs=2):
-    model = cs21m011()
-    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
-    loss_val = loss_fun(y_pred, y_ground)
-
-    train_network(train_loader,optimizer,loss_fun,10)
-    return model
+train_network(train_loader,optimizer,loss_fun,10)
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device")
@@ -172,6 +166,16 @@ def test(dataloader, model, loss_fn):
 
 test(test_loader, model, loss_fun)
 
+def get_model(train_loader,num_epochs=2):
+    model = cs21m011()
+    optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+    loss_val = loss_fun(y_pred, y_ground)
+
+    train_network(train_loader,optimizer,loss_fun,10)
+    return model
+
+def test_model():
+
 examplerollnum = 'cs21m011'
 
 examplerepo = examplerollnum + 'iittp/islcourse:exercise1'
@@ -183,17 +187,25 @@ print (entrypoints)
 train_data_loader1 = train_loader
 test_data_loader1 = test_loader
 
-model = torch.hub.load(examplerepo,'get_model',train_data=train_data_loader1,n_epochs=5, force_reload=True)
+model = torch.hub.load(examplerepo,'get_model',train_loader=train_data_loader1,e=5, force_reload=True)
 # config1 = [(1,10,(3,3),1,'same'), (10,3,(5,5),1,'same'), (3,1,(7,7),1,'same')]
 # model = torch.hub.load(examplerepo,'get_model_advanced',train_data_loader=train_data_loader1,n_epochs=10, lr=1e-4,config=config1, force_reload=True)
 
 print (model)
+
+#test_data_loader1 = None
+
+#a,p,r,f1 = torch.hub.load(examplerepo,'test_model',model1=model,test_data_loader=test_data_loader1,force_reload=True)
+
+#print (a,p,r,f1)
+
+def test_model(model1, test_data_loader):
+	a,p,r,f1 = test(test_data_loader, model1, loss_fun)
+	return a,p,r,f1
 
 test_data_loader1 = test_loader
 
 a,p,r,f1 = torch.hub.load(examplerepo,'test_model',model1=model,test_data_loader=test_data_loader1,force_reload=True)
 
 print (a,p,r,f1)
-
-
 
