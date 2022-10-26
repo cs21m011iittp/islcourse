@@ -125,7 +125,7 @@ y_ground = y
 loss_val = loss_fun(y_pred, y_ground)
 print(loss_val)
 
-optimizer = optim.SGD(model.parameters(), lr=0.001, momentum=0.9)
+optimizer = optim.SGD(model.parameters(), lr=0.001)
 
 def get_model(train_loader,num_epochs=2):
     model = cs21m011()
@@ -137,8 +137,6 @@ def get_model(train_loader,num_epochs=2):
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 print(f"Using {device} device")
-
-!pip install torchmetrics
 
 from torchmetrics import F1Score,Recall,Precision
 
@@ -166,6 +164,8 @@ def test(dataloader, model, loss_fn):
 
     f1 = F1Score(num_classes=10)
     print('F1 Score: ',f1(pred, y))
+
+    return [(100*correct),precision(pred,y).item(),recall(pred,y).item(),f1(pred,y).item()]
 
 test(test_loader, model, loss_fun)
 
