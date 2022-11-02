@@ -130,7 +130,7 @@ print(device)
 
 from torchmetrics import F1Score,Recall,Precision,Accuracy
 
-def test(test_loader,model,criteria):
+def testModel(test_loader,model,criteria):
 
     model.eval()
     test_loss,correct=0,0
@@ -164,7 +164,7 @@ def test(test_loader,model,criteria):
 
     return accuracy(outputs,y).item(), precision(outputs,y).item(), recall(outputs,y).item(), f1_score(outputs,y).item()
 
-a,p,r,f1=test(test_loader,model,criteria)
+a,p,r,f1=testModel(test_loader,model,criteria)
 print('Testing finished')
 
 print(f'accuracy: {a:.4f}')
@@ -198,34 +198,11 @@ print(f'F1 score: {f1:.4f}')
 def get_model(train_loader,num_epochs=2):
     model=cs21m011()
     optimizer=optim.SGD(model.parameters(),lr=learning_rate)
-    loss_val=criteria(output,y)
+    #loss_val=criteria(output,y)
 
     train_network(train_loader,optimizer,criteria,num_epochs)
     return model
 
-def test_model(model,test_data_loader):
-	  a,p,r,f1=test(test_loader,model,criteria)
-	  return a,p,r,f1
-
-# examplerollnum = 'cs21m011'
-
-# examplerepo = examplerollnum + 'iittp/islcourse:abcd'
-
-# entrypoints = torch.hub.list(examplerepo,force_reload=True)
-
-# print (entrypoints)
-
-# train_data_loader1=train_loader
-# test_data_loader1=test_loader
-
-# model = torch.hub.load(examplerepo,'get_model',train_data=train_data,n_epochs=5,force_reload=True)
-# # config1 = [(1,10,(3,3),1,'same'), (10,3,(5,5),1,'same'), (3,1,(7,7),1,'same')]
-# # model = torch.hub.load(examplerepo,'get_model_advanced',train_data_loader=train_data_loader1,n_epochs=10, lr=1e-4,config=config1, force_reload=True)
-
-# print (model)
-
-# #test_data_loader1 = test_loader
-
-# a,p,r,f1 = torch.hub.load(examplerepo,'test_model',model1=model,test_data_loader=test_data_loader1,force_reload=True)
-
-# print (a,p,r,f1)
+def test_model(model1,test_data_loader):
+    a,p,r,f1=testModel(test_loader,model1,criteria)
+    return a,p,r,f1
