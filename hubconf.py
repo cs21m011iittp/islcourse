@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1ec3iaSDP9XJWbBGUsAOcoXurxB7SHJfQ
 """
 
-#!pip install torchmetrics
+!pip install torchmetrics
 
 import torch
 from torch import nn
@@ -39,7 +39,9 @@ def load_data():
 train_data,test_data=load_data()
 
 print('size of X vector: ',train_data[0][0].shape)
-print('size of Y vector:',len(set([y for x,y in train_data])))
+
+classes=len(set([y for x,y in train_data]))
+print('size of Y vector:',classes)
 
 """# Creating the dataloaders"""
 
@@ -180,35 +182,170 @@ print(f'precision: {p:.4f}')
 print(f'recall: {r:.4f}')
 print(f'F1 score: {f1:.4f}')
 
-#finding the input size and output size for each layer
-
-# dataiter=iter(train_loader)
-# images,labels=dataiter.next()
-
-# conv1=nn.Conv2d(1,6,5)
-# pool=nn.MaxPool2d(2,2)
-# conv2=nn.Conv2d(6,16,5)
-# print(images.shape)
-
-
-# x=conv1(images)
-# print(x.shape)
-
-# x=pool(x)
-# print(x.shape)
-
-# x=conv2(x)
-# print(x.shape)
-
-# x=pool(x)
-# print(x.shape)
-
 def get_model(train_loader,num_epochs=2):
     model=cs21m011()
     optimizer=optim.SGD(model.parameters(),lr=learning_rate)
     #loss_val=criteria(output,y)
 
     train_network(train_loader,optimizer,criteria,num_epochs)
+    return model
+
+def test_model(model1,test_data_loader):
+    a,p,r,f1=testModel(test_loader,model1,criteria)
+    return a,p,r,f1
+
+"""# get_model_advanced"""
+
+config=[(1,10,(3,3),1,'same'), (10,3,(5,5),1,'same'), (3,1,(7,7),1,'same')]   #-->  configuration file
+
+#knowing the size of parameters(inchannles,outchannels etc..) at each layer
+
+dataiter=iter(train_loader)
+images,labels=dataiter.next()
+
+x=images
+print('\noriginal image size: ',images.shape)
+
+
+conv1=nn.Conv2d(config[0][0],config[0][1],config[0][2])
+conv2=nn.Conv2d(config[0][1],config[1][1],config[1][2])
+conv3=nn.Conv2d(config[1][1],config[-1][1],config[-1][2])
+
+
+x=conv1(images)
+print('image size after convolution1: ',x.shape)      # [32,10,26,26]
+
+
+x=conv2(x)
+print('image size after convolution2: ',x.shape)      # [32,1,22,22]
+
+x=conv3(x)
+print('image size after convolution3: ',x.shape)      # [32,1,16,16]
+
+
+global pp,qq
+pp,qq=x.shape[2],x.shape[3]
+
+class cs21m011_advanced(nn.Module):
+      def __init__(self,config,classes):
+          super(cs21m011_advanced,self).__init__()
+          self.m=nn.Softmax(dim=1)
+
+          #convolution layers
+          self.conv1=nn.Conv2d(config[0][0],config[0][1],config[0][2])
+          self.conv2=nn.Conv2d(config[0][1],config[1][1],config[1][2])
+          self.conv3=nn.Conv2d(config[1][1],config[-1][1],config[-1][2])
+          
+          self.fc1=nn.Linear(config[-1][1]*pp*qq,100)
+          self.fc2=nn.Linear(100,classes)
+
+      def forward(self,x):
+          x=F.relu(self.conv1(x))
+          x=F.relu(self.conv2(x))
+          x=F.relu(self.conv3(x))
+
+          x=x.view(-1,config[-1][1]*pp*qq)
+
+          x=F.relu(self.fc1(x))
+          x=self.fc2(x)
+          x=self.m(x)   #applying softmax to get list of probabilities
+          return x
+
+model1=cs21m011_advanced(config,classes)
+
+"""# checking the advanced model with single data point"""
+
+x,y=train_data[0]
+print('input size: ',x.shape)
+output=model1(x)
+print('output size: ',output.shape)
+#print(output)
+
+loss=criteria(output,y)
+
+print('loss value: ',loss)
+
+"""# Training advanced model"""
+
+def train_network_advanced(train_loader,optimizer,criteria,num_epochs,config):
+
+    n_total_steps=len(train_loader)
+
+    for epoch in range(num_epochs):
+        for i,data in enumerate(train_loader,0):
+            inputs,labels=data
+
+            optimizer.zero_grad()
+
+            outputs=model(inputs)
+            #print(outputs.shape,labels.shape)
+
+            #one hot encoding
+            tmp=torch.nn.functional.one_hot(labels,num_classes=10)
+
+            #loss function
+            loss=criteria(outputs,tmp)
+            loss.backward()    #finding the derivative of loss function wrt to coefficients
+
+            optimizer.step()        #calulating the gradients
+
+            #print statistics
+            if(i%2000==0):
+              print(f'Epoch [{epoch+1}/{num_epochs}], Step [{i+1}/{n_total_steps}], Loss: {loss.item():.4f}')
+
+train_network_advanced(train_loader,optimizer,criteria,num_epochs,config)
+print('Training Completed')
+
+def testModel(test_loader,model,criteria):
+
+    model.eval()
+    test_loss,correct=0,0
+    num_batches=len(test_loader)
+    size=len(test_loader.dataset)
+
+    with torch.no_grad():
+        for X,y in test_loader:
+            tmp=torch.nn.functional.one_hot(y,num_classes=10)
+            outputs=model(X)
+
+            test_loss=test_loss+criteria(outputs,tmp).item()
+            correct=correct+(outputs.argmax(1)==y).type(torch.float).sum().item()
+            
+    test_loss=test_loss/num_batches
+    correct=correct/size
+
+    print(f"Test Error: \n Accuracy: {(100*correct):>0.1f}%, Avg loss: {test_loss:>8f} \n")
+
+    accuracy = Accuracy()
+    #print('Accuracy: ',accuracy(outputs,y))
+
+    precision=Precision(average='macro',num_classes=10)
+    #print(f'Precision:{precision(outputs,y)}')
+
+    recall=Recall(average='macro',num_classes=10)
+    #print(f'Precision:{recall(outputs,y)}')
+
+    f1_score=F1Score(average='macro',num_classes=10)
+    #print(f'Precision:{f1_score(outputs,y)}')
+
+    return accuracy(outputs,y).item(), precision(outputs,y).item(), recall(outputs,y).item(), f1_score(outputs,y).item()
+
+a,p,r,f1=testModel(test_loader,model1,criteria)
+print('Testing finished')
+
+print(f'accuracy: {a:.4f}')
+print(f'precision: {p:.4f}')
+print(f'recall: {r:.4f}')
+print(f'F1 score: {f1:.4f}')
+
+def get_model_advanced(train_loader,num_epochs=2,lr=1e-4,config=config):
+    model=cs21m011_advanced(config,classes)
+    learning_rate=lr
+    
+    optimizer=optim.SGD(model.parameters(),lr=learning_rate)
+    #loss_val=criteria(output,y)
+
+    train_network_advanced(train_loader,optimizer,criteria,num_epochs,config)
     return model
 
 def test_model(model1,test_data_loader):
