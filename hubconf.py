@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1SAgUb_BH4dENeKb8QvUWxsxPgiK6Kf3M
 """
 
-!pip install torchmetrics
+#!pip install torchmetrics
 
 import torch
 from torch import nn
@@ -51,7 +51,10 @@ def create_dataloaders(train_data,test_data,batch_size):
 
 train_loader,test_loader=create_dataloaders(train_data,test_data,batch_size=32)
 
-"""# invoking the **hubconf.py** file from Github repo"""
+"""# invoking the **hubconf.py** file from Github repo (***get_model***)
+
+
+"""
 
 examplerollnum = 'cs21m011'
 
@@ -65,20 +68,39 @@ train_data_loader1 = train_loader
 test_data_loader1 = test_loader
 
 model = torch.hub.load(examplerepo,'get_model',train_loader=train_data_loader1,num_epochs=5, force_reload=True)
-# config1 = [(1,10,(3,3),1,'same'), (10,3,(5,5),1,'same'), (3,1,(7,7),1,'same')]
-# model = torch.hub.load(examplerepo,'get_model_advanced',train_data_loader=train_data_loader1,n_epochs=10, lr=1e-4,config=config1, force_reload=True)
-
-print (model)
-
-#test_data_loader1 = None
-
-#a,p,r,f1 = torch.hub.load(examplerepo,'test_model',model1=model,test_data_loader=test_data_loader1,force_reload=True)
-
-#print (a,p,r,f1)
+print(model)
 
 test_data_loader1 = test_loader
 
 a,p,r,f1=torch.hub.load(examplerepo,'test_model',model1=model,test_data_loader=test_data_loader1,force_reload=True)
+
+print(f'Accuracy: {a:.4f}')
+print(f'Precision: {p:.4f}')
+print(f'Recall: {r:.4f}')
+print(f'F1 score: {f1:.4f}')
+
+"""# invoking the **hubconf.py** file from Github repo ***(get_model_advanced)***"""
+
+examplerollnum = 'cs21m011'
+
+examplerepo = examplerollnum + 'iittp/islcourse:exercise3'
+
+entrypoints = torch.hub.list(examplerepo,force_reload=True)
+
+print(entrypoints)
+
+train_data_loader1 = train_loader
+test_data_loader1 = test_loader
+
+
+config1 = [(1,10,(3,3),1,'same'), (10,3,(5,5),1,'same'), (3,1,(7,7),1,'same')]
+
+model = torch.hub.load(examplerepo,'get_model_advanced',train_loader=train_data_loader1,num_epochs=4, lr=1e-4,config=config1, force_reload=True)
+print(model)
+
+test_data_loader1 = test_loader
+
+a,p,r,f1=torch.hub.load(examplerepo,'test_model_advanced',model1=model,test_data_loader=test_data_loader1,force_reload=True)
 
 print(f'Accuracy: {a:.4f}')
 print(f'Precision: {p:.4f}')
