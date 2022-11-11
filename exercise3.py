@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1ec3iaSDP9XJWbBGUsAOcoXurxB7SHJfQ
 """
 
-#!pip install torchmetrics
+!pip install torchmetrics
 
 import torch
 from torch import nn
@@ -251,13 +251,13 @@ class cs21m011_advanced(nn.Module):
           x=self.m(x)   #applying softmax to get list of probabilities
           return x
 
-model1=cs21m011_advanced(config,classes)
+model_advanced=cs21m011_advanced(config,classes)
 
 """# checking the advanced model with single data point"""
 
 x,y=train_data[0]
 print('input size: ',x.shape)
-output=model1(x)
+output=model_advanced(x)
 print('output size: ',output.shape)
 #print(output)
 
@@ -296,6 +296,8 @@ def train_network_advanced(train_loader,optimizer,criteria,num_epochs,config):
 train_network_advanced(train_loader,optimizer,criteria,num_epochs,config)
 print('Training Completed')
 
+"""# Testing the advanced training model"""
+
 def testModelAdvanced(test_loader,model,criteria):
 
     model.eval()
@@ -330,7 +332,7 @@ def testModelAdvanced(test_loader,model,criteria):
 
     return accuracy(outputs,y).item(), precision(outputs,y).item(), recall(outputs,y).item(), f1_score(outputs,y).item()
 
-a,p,r,f1=testModelAdvanced(test_loader,model,criteria)
+a,p,r,f1=testModelAdvanced(test_loader,model_advanced,criteria)
 print('Testing finished')
 
 print(f'accuracy: {a:.4f}')
