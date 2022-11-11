@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1ec3iaSDP9XJWbBGUsAOcoXurxB7SHJfQ
 """
 
-#!pip install torchmetrics
+!pip install torchmetrics
 
 import torch
 from torch import nn
@@ -227,16 +227,16 @@ global pp,qq
 pp,qq=x.shape[2],x.shape[3]
 
 class cs21m011_advanced(nn.Module):
+    global kk
+    
     def __init__(self,num_channels,h,w,config,num_classes):
         super(cs21m011_advanced,self).__init__()
         
         self.net_stack = nn.Sequential()
-        self.num_params_first_fc = 0
 
         for i in range(len(config)):
             layer = config[i]
 
-            kernel = layer[2]
             padding = layer[4] # assuming that padding is always given as 'same'
             
             if isinstance(layer[3],int):
@@ -244,20 +244,20 @@ class cs21m011_advanced(nn.Module):
             else:
                 stride = layer[3]
 
-            self.net_stack.append(nn.Conv2d(in_channels=config[i][0], out_channels=config[i][1],kernel_size=kernel,stride = stride,padding=padding))
+            self.net_stack.append(nn.Conv2d(in_channels=config[i][0], out_channels=config[i][1],kernel_size=config[i][2],stride=stride,padding=padding))
             self.net_stack.append(nn.ReLU())
 
             if padding != "same":
                 if isinstance(padding,int):
                     padding = [padding,padding]
-                h = (int)((h - kernel[0])/stride[0])+1
-                w = (int)((w - kernel[1])/stride[1])+1
+                h = (int)((h - config[i][2][0])/stride[0])+1   # ((W-F+2P)/S)+1
+                w = (int)((w - config[i][2][1])/stride[1])+1
 
             if i == len(config)-1:
-                self.num_params_first_fc = config[i][1]
+                kk=config[i][1]
 
         self.net_stack.append(nn.Flatten())
-        self.net_stack.append(nn.Linear(self.num_params_first_fc*h*w,num_classes))
+        self.net_stack.append(nn.Linear(kk*h*w,num_classes))
         self.net_stack.append(nn.Softmax(1))
     
     def forward(self,x):
@@ -361,7 +361,7 @@ print(f'F1 score: {f1:.4f}')
 """# get model and test model functions"""
 
 def get_model_advanced(train_loader,num_epochs=2,lr=1e-4,config=config):
-    model_advanced=cs21m011_advanced(num_channels,height,width,config,classes)
+    model_advanced=cs21m011_advanced(num_channels,height,width,config,classes)    
     learning_rate=lr
     
     optimizer=optim.SGD(model.parameters(),lr=learning_rate)
