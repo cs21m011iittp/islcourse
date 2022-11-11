@@ -296,7 +296,7 @@ def train_network_advanced(train_loader,optimizer,criteria,num_epochs,config):
 train_network_advanced(train_loader,optimizer,criteria,num_epochs,config)
 print('Training Completed')
 
-def testModel(test_loader,model,criteria):
+def testModelAdvanced(test_loader,model,criteria):
 
     model.eval()
     test_loss,correct=0,0
@@ -330,7 +330,7 @@ def testModel(test_loader,model,criteria):
 
     return accuracy(outputs,y).item(), precision(outputs,y).item(), recall(outputs,y).item(), f1_score(outputs,y).item()
 
-a,p,r,f1=testModel(test_loader,model1,criteria)
+a,p,r,f1=testModelAdvanced(test_loader,model,criteria)
 print('Testing finished')
 
 print(f'accuracy: {a:.4f}')
@@ -348,6 +348,6 @@ def get_model_advanced(train_loader,num_epochs=2,lr=1e-4,config=config):
     train_network_advanced(train_loader,optimizer,criteria,num_epochs,config)
     return model
 
-def test_model(model1,test_data_loader):
-    a,p,r,f1=testModel(test_loader,model1,criteria)
+def test_model_advanced(model1,test_data_loader):
+    a,p,r,f1=testModelAdvanced(test_loader,model1,criteria)
     return a,p,r,f1
