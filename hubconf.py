@@ -361,7 +361,7 @@ print(f'F1 score: {f1:.4f}')
 """# get model and test model functions"""
 
 def get_model_advanced(train_loader,num_epochs=2,lr=1e-4,config=config):
-    model=cs21m011_advanced(config,classes)
+    model_advanced=cs21m011_advanced(num_channels,height,width,config,classes)    
     learning_rate=lr
     
     optimizer=optim.SGD(model.parameters(),lr=learning_rate)
