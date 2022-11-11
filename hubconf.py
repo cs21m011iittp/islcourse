@@ -227,36 +227,53 @@ global pp,qq
 pp,qq=x.shape[2],x.shape[3]
 
 class cs21m011_advanced(nn.Module):
-      def __init__(self,config,classes):
-          super(cs21m011_advanced,self).__init__()
-          self.m=nn.Softmax(dim=1)
+    def __init__(self,num_channels,h,w,config,num_classes):
+        super(cs21m011_advanced,self).__init__()
+        
+        self.net_stack = nn.Sequential()
+        self.num_params_first_fc = 0
 
-          #convolution layers
-          self.conv1=nn.Conv2d(config[0][0],config[0][1],config[0][2])
-          self.conv2=nn.Conv2d(config[0][1],config[1][1],config[1][2])
-          self.conv3=nn.Conv2d(config[1][1],config[-1][1],config[-1][2])
-          
-          self.fc1=nn.Linear(config[-1][1]*pp*qq,100)
-          self.fc2=nn.Linear(100,classes)
+        for i in range(len(config)):
+            layer = config[i]
 
-      def forward(self,x):
-          x=F.relu(self.conv1(x))
-          x=F.relu(self.conv2(x))
-          x=F.relu(self.conv3(x))
+            kernel = layer[2]
+            padding = layer[4] # assuming that padding is always given as 'same'
+            
+            if isinstance(layer[3],int):
+                stride = [layer[3],layer[3]]
+            else:
+                stride = layer[3]
 
-          x=x.view(-1,config[-1][1]*pp*qq)
+            self.net_stack.append(nn.Conv2d(in_channels=config[i][0], out_channels=config[i][1],kernel_size=kernel,stride = stride,padding=padding))
+            self.net_stack.append(nn.ReLU())
 
-          x=F.relu(self.fc1(x))
-          x=self.fc2(x)
-          x=self.m(x)   #applying softmax to get list of probabilities
-          return x
+            if padding != "same":
+                if isinstance(padding,int):
+                    padding = [padding,padding]
+                h = (int)((h - kernel[0])/stride[0])+1
+                w = (int)((w - kernel[1])/stride[1])+1
 
-model_advanced=cs21m011_advanced(config,classes)
+            if i == len(config)-1:
+                self.num_params_first_fc = config[i][1]
+
+        self.net_stack.append(nn.Flatten())
+        self.net_stack.append(nn.Linear(self.num_params_first_fc*h*w,num_classes))
+        self.net_stack.append(nn.Softmax(1))
+    
+    def forward(self,x):
+        x = self.net_stack(x)
+        return x
+
+N , num_channels , height , width = next(iter(train_loader))[0].shape
+
+model_advanced=cs21m011_advanced(num_channels,height,width,config,classes)
 
 """# checking the advanced model with single data point"""
 
 x,y=train_data[0]
 print('input size: ',x.shape)
+
+
 output=model_advanced(x)
 print('output size: ',output.shape)
 #print(output)
@@ -274,7 +291,7 @@ def train_network_advanced(train_loader,optimizer,criteria,num_epochs,config):
     for epoch in range(num_epochs):
         for i,data in enumerate(train_loader,0):
             inputs,labels=data
-
+            
             optimizer.zero_grad()
 
             outputs=model(inputs)
@@ -308,8 +325,9 @@ def testModelAdvanced(test_loader,model,criteria):
     with torch.no_grad():
         for X,y in test_loader:
             tmp=torch.nn.functional.one_hot(y,num_classes=10)
-            outputs=model(X)
 
+            outputs=model(X)
+            #print(outputs.shape)
             test_loss=test_loss+criteria(outputs,tmp).item()
             correct=correct+(outputs.argmax(1)==y).type(torch.float).sum().item()
             
@@ -339,6 +357,8 @@ print(f'accuracy: {a:.4f}')
 print(f'precision: {p:.4f}')
 print(f'recall: {r:.4f}')
 print(f'F1 score: {f1:.4f}')
+
+"""# get model and test model functions"""
 
 def get_model_advanced(train_loader,num_epochs=2,lr=1e-4,config=config):
     model=cs21m011_advanced(config,classes)
