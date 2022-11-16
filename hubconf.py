@@ -9,6 +9,14 @@ Original file is located at
 
 #!pip install torchmetrics
 
+import subprocess
+import sys
+
+def install(package):
+    subprocess.check_call([sys.executable, "-m", "pip", "install", package])
+    
+install('torchmetrics')
+
 import torch
 from torch import nn
 from torch.utils.data import Dataset, DataLoader
