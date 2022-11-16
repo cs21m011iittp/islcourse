@@ -150,7 +150,7 @@ from torchmetrics import F1Score,Recall,Precision,Accuracy
 
 def testModel(test_loader,model,criteria):
 
-    model.eval()
+    #model.eval()
     test_loss,correct=0,0
     num_batches=len(test_loader)
     size=len(test_loader.dataset)
@@ -325,7 +325,7 @@ print('Training Completed')
 
 def testModelAdvanced(test_loader,model,criteria):
 
-    model.eval()
+    #model.eval()
     test_loss,correct=0,0
     num_batches=len(test_loader)
     size=len(test_loader.dataset)
