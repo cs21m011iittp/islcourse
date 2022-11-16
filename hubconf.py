@@ -190,12 +190,12 @@ print(f'precision: {p:.4f}')
 print(f'recall: {r:.4f}')
 print(f'F1 score: {f1:.4f}')
 
-def get_model(train_loader,num_epochs=2):
+def get_model(train_data,n_epochs=2):
     model=cs21m011()
     optimizer=optim.SGD(model.parameters(),lr=learning_rate)
     #loss_val=criteria(output,y)
 
-    train_network(train_loader,optimizer,criteria,num_epochs)
+    train_network(train_data,optimizer,criteria,n_epochs)
     return model
 
 def test_model(model1,test_data_loader):
@@ -368,14 +368,14 @@ print(f'F1 score: {f1:.4f}')
 
 """# get model and test model functions"""
 
-def get_model_advanced(train_loader,num_epochs=2,lr=1e-4,config=config):
+def get_model_advanced(train_data_loader,n_epochs=2,lr=1e-4,config=config):
     model_advanced=cs21m011_advanced(num_channels,height,width,config,classes)    
     learning_rate=lr
     
     optimizer=optim.SGD(model.parameters(),lr=learning_rate)
     #loss_val=criteria(output,y)
 
-    train_network_advanced(train_loader,optimizer,criteria,num_epochs,config)
+    train_network_advanced(train_data_loader,optimizer,criteria,n_epochs,config)
     return model
 
 def test_model_advanced(model1,test_data_loader):
