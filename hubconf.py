@@ -7,7 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1ec3iaSDP9XJWbBGUsAOcoXurxB7SHJfQ
 """
 
-!pip install torchmetrics
+#!pip install torchmetrics
 
 import torch
 from torch import nn
