@@ -16,6 +16,9 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
+from sklearn.metrics.cluster import homogeneity_score
+from sklearn.metrics.cluster import completeness_score
+from sklearn.metrics.cluster import v_measure_score
 
 ###part1###
 def get_data_blobs(n_points=100):
