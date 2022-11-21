@@ -199,28 +199,42 @@ class MyNN(nn.Module):
     def __init__(self,inp_dim=64,hid_dim=13,num_classes=10):
         super(MyNN,self).__init__()
 
-        #convolution layers
-        self.encoder1=nn.Conv2d(1,6,3)
-        self.encoder2=nn.Conv2d(6,4,3)
+        self.fc_encoder = nn.Conv2d(in_channels=1,out_channels=hid_dim,kernel_size=6,stride=1,padding=0)  # write your code inp_dim to hid_dim mapper
+
+        self.fc_decoder = nn.ConvTranspose2d(in_channels=hid_dim,out_channels=inp_dim,kernel_size=6,stride=1,padding=0)  # write your code hid_dim to inp_dim mapper
+
+        self.fc_classifier = nn.Linear(inp_dim,num_classes) # write your code to map hid_dim to num_classes
         
-        #transposed convolution layers
-        self.decoder1=nn.ConvTranspose2d(4,6,3)
-        self.decoder2=nn.ConvTranspose2d(6,1,3)
+        self.relu=nn.ReLU()
+
+        self.softmax = nn.Softmax(dim=1)
+
 
     def forward(self,x):
-      x=F.relu(self.encoder1(x))
-      #print(x.shape)  # [6,26,26]
+        x = torch.flatten(x) # write your code - flatten x
+        x_enc = self.fc_encoder(x)
+        print(x_enc.shape)
+        x_enc = self.relu(x_enc)
+        
+        y_pred = self.fc_classifier(x_enc)
+        y_pred = self.softmax(y_pred)
+        
+        x_dec = self.fc_decoder(x_enc)
       
-      x=F.relu(self.encoder2(x))
-      #print(x.shape)  # [12,24,24]
-
-      x=F.relu(self.decoder1(x))
-      #print(x.shape)  # [10,26,26]
-
-      x=F.sigmoid(self.decoder2(x))
-      #print(x.shape)  # [11,28,28]
-      
-      return x,x
+        return y_pred, x_dec
+  
+    # This a multi component loss function - lc1 for class prediction loss and lc2 for auto-encoding loss
+    def loss_fn(self,x,yground,y_pred,xencdec):
+        # class prediction loss
+        # yground needs to be one hot encoded - write your code
+        lc1 = cross_entropy(y_pred,yground) # write your code for cross entropy between yground and y_pred, advised to use torch.mean()
+        
+        # auto encoding loss
+        lc2 = torch.mean((x - xencdec)**2)
+        
+        lval = lc1 + lc2
+    
+        return lval
 
   
     # This a multi component loss function - lc1 for class prediction loss and lc2 for auto-encoding loss
