@@ -50,18 +50,10 @@ def compare_clusterings(ypred_1=None,ypred_2=None):
 
 
 """# Part2"""
-import torch
-import numpy as np
-import sklearn
-from sklearn.datasets import make_blobs,make_circles
-from sklearn.model_selection import GridSearchCV
+from sklearn.datasets import load_digits
+from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.linear_model import LinearRegression
-import matplotlib.pyplot as plt
-from sklearn.cluster import KMeans
-from sklearn.metrics.cluster import homogeneity_score
-from sklearn.metrics.cluster import completeness_score
-from sklearn.metrics.cluster import v_measure_score
+from sklearn.metrics import accuracy_score,precision_score,recall_score,f1_score,roc_auc_score
 
 
 def get_data_mnist():
