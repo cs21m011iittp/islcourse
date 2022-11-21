@@ -99,7 +99,8 @@ from sklearn.datasets import load_digits
 
 from sklearn import svm, metrics
 
-digits = load_digits()
+x,y = get_data_mnist()
+digits=load_digits()
 
 X_data = digits.data
 Y_data = digits.target
