@@ -79,7 +79,32 @@ def get_metrics(model1=None,X=None,y=None):
   auc = roc_auc_score(y, model1.predict_proba(X), multi_class='ovr')
   return acc, prec, rec, f1, auc
 
+###part2b###
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from sklearn.neural_network import MLPClassifier
+from sklearn.datasets import make_classification
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split, GridSearchCV, RandomizedSearchCV, cross_val_score
 
+# imporitn the data set from the sklearn
+from sklearn.datasets import load_digits 
+
+#import the classifier and performance matrix
+
+from sklearn import svm, metrics
+
+digits = load_digits()
+
+X_data = digits.data
+Y_data = digits.target
+
+x_train, x_test, y_train, y_test = train_test_split(X_data,Y_data, random_state=42)
 
 def get_paramgrid_lr():
   mlp_prmtr_lr = {
