@@ -7,6 +7,7 @@ Original file is located at
     https://colab.research.google.com/drive/1yPcwLCzBeSn3PzwVhc_lOnDvak_h-kvr
 """
 
+"""# Part1"""
 import torch
 import numpy as np
 import sklearn
@@ -20,7 +21,6 @@ from sklearn.metrics.cluster import homogeneity_score
 from sklearn.metrics.cluster import completeness_score
 from sklearn.metrics.cluster import v_measure_score
 
-###part1###
 def get_data_blobs(n_points=100):
   X, y = make_blobs(n_samples=n_points, centers=3, n_features=2,random_state=0)
   return X,y
@@ -47,3 +47,42 @@ def compare_clusterings(ypred_1=None,ypred_2=None):
   c =completeness_score(ypred_1,ypred_2)
   v = v_measure_score(ypred_1,ypred_2)
   return h,c,v
+
+
+"""# Part2"""
+import torch
+import numpy as np
+import sklearn
+from sklearn.datasets import make_blobs,make_circles
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
+from sklearn.metrics.cluster import homogeneity_score
+from sklearn.metrics.cluster import completeness_score
+from sklearn.metrics.cluster import v_measure_score
+
+
+def get_data_mnist():
+  X,y = load_digits(return_X_y=True)
+  #print(X.shape)
+  return X,y
+
+def build_lr_model(X=None, y=None):
+  lr_model = LogisticRegression(random_state=0,max_iter=10000).fit(X, y)
+  return lr_model
+
+def build_rf_model(X=None, y=None):
+  rf_model = RandomForestClassifier(max_depth=2, random_state=0)
+  rf_model.fit(X,y)
+  return rf_model
+
+def get_metrics(model1=None,X=None,y=None):
+  y_pred = model1.predict(X)
+  acc = accuracy_score(y, y_pred)
+  prec = precision_score(y, y_pred, average='micro')
+  rec = recall_score(y, y_pred, average='micro')
+  f1 = f1_score(y, y_pred, average='micro')
+  auc = roc_auc_score(y, model1.predict_proba(X), multi_class='ovr')
+  return acc, prec, rec, f1, auc
