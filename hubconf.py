@@ -8,15 +8,13 @@ Original file is located at
 """
 
 import torch
-from torch import nn
-import torch.optim as optim
-from sklearn.datasets import load_digits
-
-# You can import whatever standard packages are required
-
-# full sklearn, full pytorch, pandas, matplotlib, numpy are all available
-# Ideally you do not need to pip install any other packages!
-# Avoid pip install requirement on the evaluation program side, if you use above packages and sub-packages of them, then that is fine!
+import numpy as np
+import sklearn
+from sklearn.datasets import make_blobs,make_circles
+from sklearn.model_selection import GridSearchCV
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.linear_model import LinearRegression
+import matplotlib.pyplot as plt
 
 ###part1###
 def get_data_blobs(n_points=100):
@@ -197,18 +195,13 @@ class MyNN(nn.Module):
 
         self.m=nn.Softmax(dim=1)
     
-    def forward(self,x):
-        x=F.relu(self.encoder1(x))
-        #print(x.shape)  # [6,26,26]
+    def forward(self,input):
+        x_enc=F.relu(self.encoder1(input))
+        y_pred=self.m(x)
 
-        x=F.relu(self.decoder1(x))
-        #print(x.shape)  # [10,26,26]
-        x=self.m(x)
+        x_dec=self.decoder1(x_enc)
 
-        x_dec=self.decoder1(x)
-
-        return x,x_dec
-
+        return y_pred,x_dec
   
     # This a multi component loss function - lc1 for class prediction loss and lc2 for auto-encoding loss
     def loss_fn(self,x,yground,y_pred,xencdec):
