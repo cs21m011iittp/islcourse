@@ -169,42 +169,11 @@ def create_dataloaders(train_data, test_data, batch_size=32):
         
     return train_dataloader, test_dataloader
 
-train_loader,test_loader=create_dataloaders(train_data,test_data)
-
 def get_mnist_tensor():
-    X, y = load_digits(return_X_y=True)
+    X, y = create_dataloaders(train_data,test_data)
     return X,y
 
-X,y=get_mnist_tensor()
-
-print(X.shape)
-print(y.shape)
-
-df = pd.DataFrame(X)
-#df.head()
-
-data=df
-X = data.to_numpy()
-print("X.shape, y.shape", X.shape,y.shape)
-
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
-
-print(X_train.shape, y_train.shape)
-print(X_test.shape, y_test.shape)
-
-n_train = X_train.shape[0]
-
-X_train = torch.tensor(X_train, dtype=torch.float)
-y_train = torch.tensor(y_train, dtype=torch.float).view(-1,1)
-X_test = torch.tensor(X_test, dtype=torch.float)
-y_test = torch.tensor(y_test, dtype=torch.float).view(-1,1)
-
-batch_size=10
-train_data = torch.utils.data.TensorDataset(X_train, y_train)
-test_data = torch.utils.data.TensorDataset(X_test, y_test)
-
-train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
-test_loader = torch.utils.data.DataLoader(test_data,batch_size=batch_size, shuffle=True)
+train_loader, test_loader=get_mnist_tensor()
 
 for X, y in train_loader:
         print(f"Shape of X [N, C, H, W]: {X.shape}")
@@ -219,25 +188,26 @@ def cross_entropy(y_pred,y):
 class MyNN(nn.Module):
     def __init__(self,inp_dim=64,hid_dim=13,num_classes=10):
         super(MyNN,self).__init__()
-      
-        self.fc_encoder = nn.Conv2d(1,6,3)  # write your code inp_dim to hid_dim mapper
-        self.fc_decoder = nn.ConvTranspose2d(4,6,3)  # write your code hid_dim to inp_dim mapper
-        self.fc_classifier = nn.Linear(6,10) # write your code to map hid_dim to num_classes
-        
-        self.relu = nn.ReLU()   #write your code - relu object
-        self.softmax = nn.Softmax(dim=1) #write your code - softmax object
+
+        #convolution layers
+        self.encoder1=nn.Conv2d(1,inp_dim,hid_dim)
+
+        #transposed convolution layers
+        self.decoder1=nn.ConvTranspose2d(hid_dim,6,num_classes)
+
+        self.m=nn.Softmax(dim=1)
     
     def forward(self,x):
-        x = torch.flatten(x) # write your code - flatten x
-        x_enc = self.fc_encoder(x)
-        x_enc = self.relu(x_enc)
-        
-        y_pred = self.fc_classifier(x_enc)
-        y_pred = self.softmax(y_pred)
-        
-        x_dec = self.fc_decoder(x_enc)
-    
-        return y_pred, x_dec
+        x=F.relu(self.encoder1(x))
+        #print(x.shape)  # [6,26,26]
+
+        x=F.relu(self.decoder1(x))
+        #print(x.shape)  # [10,26,26]
+        x=self.m(x)
+
+        x_dec=self.decoder1(x)
+
+        return x,x_dec
 
   
     # This a multi component loss function - lc1 for class prediction loss and lc2 for auto-encoding loss
@@ -258,7 +228,10 @@ def get_mynn(inp_dim=64,hid_dim=13,num_classes=10):
     mynn.double()
     return mynn
 
-mynn=get_mynn()
+device='cuda' if torch.cuda.is_available() else 'cpu'
+device
+
+mynn=get_mynn().to(device)
 
 def get_loss_on_single_point(mynn,x0,y0):
     y_pred, xencdec = mynn(x0)
@@ -266,7 +239,12 @@ def get_loss_on_single_point(mynn,x0,y0):
     # the lossval should have grad_fn attribute set
     return lossval
 
-x0,y0=X_train[0],X_train[0]
+x0,y0=train_data[0]
+print(x0.shape)
+
+x0=x0.to(device)
+#y0=y0.to(device)
+
 loss_single_point=get_loss_on_single_point(mynn,x0,y0)
 
 def train_combined_encdec_predictor(mynn,X,y, epochs=11):
