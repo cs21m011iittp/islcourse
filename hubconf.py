@@ -15,6 +15,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LinearRegression
 import matplotlib.pyplot as plt
+from sklearn.cluster import KMeans
 
 ###part1###
 def get_data_blobs(n_points=100):
