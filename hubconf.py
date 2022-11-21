@@ -78,3 +78,138 @@ def get_metrics(model1=None,X=None,y=None):
   f1 = f1_score(y, y_pred, average='micro')
   auc = roc_auc_score(y, model1.predict_proba(X), multi_class='ovr')
   return acc, prec, rec, f1, auc
+
+
+
+
+"""# Part3"""
+import torch
+from torch import nn
+from torch.utils.data import Dataset, DataLoader
+from torchvision import datasets
+from torchvision.transforms import ToTensor, ToPILImage
+from PIL import Image
+import torch.nn.functional as F
+import torch.optim as optim
+import numpy as np
+import pandas as pd
+from sklearn.datasets import load_boston
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
+import warnings
+warnings.filterwarnings('ignore')
+
+
+def load_data():
+    train_data = datasets.MNIST(
+        root="data",
+        train=True,
+        download=True,
+        transform=ToTensor(), 
+    )
+
+  # Download test data from open datasets.
+    test_data = datasets.MNIST(
+        root="data",
+        train=False,
+        download=True,
+        transform=ToTensor(),
+    )
+
+    return train_data, test_data
+
+def get_mnist_tensor():
+    X, y = load_data()
+    return X,y
+
+train_data, test_data=get_mnist_tensor()
+
+for X, y in train_data:
+        print(f"Shape of X [N, C, H, W]: {X.shape}")
+        #print(f"Shape of y: {y.shape} {y.dtype}")
+        break
+
+def cross_entropy(y_pred,y):
+    v=-(y*torch.log(y_pred+0.0001))
+    v=torch.sum(v)
+    return v
+
+class MyNN(nn.Module):
+    def __init__(self,inp_dim=64,hid_dim=13,num_classes=10):
+        super(MyNN,self).__init__()
+
+        #convolution layers
+        self.encoder1=nn.Conv2d(1,6,3)
+        self.encoder2=nn.Conv2d(6,4,3)
+        
+        #transposed convolution layers
+        self.decoder1=nn.ConvTranspose2d(4,6,3)
+        self.decoder2=nn.ConvTranspose2d(6,1,3)
+
+    def forward(self,x):
+      x=F.relu(self.encoder1(x))
+      #print(x.shape)  # [6,26,26]
+      
+      x=F.relu(self.encoder2(x))
+      #print(x.shape)  # [12,24,24]
+
+      x=F.relu(self.decoder1(x))
+      #print(x.shape)  # [10,26,26]
+
+      x=F.sigmoid(self.decoder2(x))
+      #print(x.shape)  # [11,28,28]
+      
+      return x,x
+
+  
+    # This a multi component loss function - lc1 for class prediction loss and lc2 for auto-encoding loss
+    def loss_fn(self,x,yground,y_pred,xencdec):
+        # class prediction loss
+        # yground needs to be one hot encoded - write your code
+        lc1 = cross_entropy(y_pred,yground) # write your code for cross entropy between yground and y_pred, advised to use torch.mean()
+        
+        # auto encoding loss
+        lc2 = torch.mean((x - xencdec)**2)
+        
+        lval = lc1 + lc2
+    
+        return lval
+
+def get_mynn(inp_dim=64,hid_dim=13,num_classes=10):
+    mynn = MyNN(inp_dim,hid_dim,num_classes)
+    return mynn
+
+device='cuda' if torch.cuda.is_available() else 'cpu'
+device
+
+mynn=get_mynn().to(device)
+
+def get_loss_on_single_point(mynn,x0,y0):
+    y_pred, xencdec = mynn(x0)
+    lossval = mynn.loss_fn(x0,y0,y_pred,xencdec)
+    # the lossval should have grad_fn attribute set
+    return lossval
+
+x0=train_data[0][0]
+x0=x0.to(device)
+
+y0=train_data[0][1]
+
+l=get_loss_on_single_point(mynn,x0,x0)
+
+def train_combined_encdec_predictor(mynn,X,y, epochs=11):
+  # X, y are provided as tensor
+  # perform training on the entire data set (no batches etc.)
+  # for each epoch, update weights
+  
+  optimizer = optim.SGD(mynn.parameters(), lr=0.01)
+  
+  for i in range(epochs):
+    optimizer.zero_grad()
+    ypred, Xencdec = mynn(X)
+    lval = mynn.loss_fn(X,y,ypred,Xencdec)
+    lval.backward()
+    optimizer.step()
+    
+  return mynn
