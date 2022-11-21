@@ -18,54 +18,33 @@ from sklearn.datasets import load_digits
 # Ideally you do not need to pip install any other packages!
 # Avoid pip install requirement on the evaluation program side, if you use above packages and sub-packages of them, then that is fine!
 
-###### PART 1 ######
-
+###part1###
 def get_data_blobs(n_points=100):
-  pass
-  # write your code here
-  # Refer to sklearn data sets
-  X, y = None
-  # write your code ...
+  X, y = make_blobs(n_samples=n_points, centers=3, n_features=2,random_state=0)
   return X,y
 
 def get_data_circles(n_points=100):
-  pass
-  # write your code here
-  # Refer to sklearn data sets
-  X, y = None
-  # write your code ...
+  X, y = make_circles(n_samples = n_points)
   return X,y
 
 def get_data_mnist():
-    X,y=load_digits(n_class=10,return_X_y=True)
-    return X,y
+  X,y = load_digits(return_X_y=True)
+  #print(X.shape)
+  return X,y
 
 def build_kmeans(X=None,k=10):
-  pass
-  # k is a variable, calling function can give a different number
-  # Refer to sklearn KMeans method
-  km = None # this is the KMeans object
-  # write your code ...
-  return km
+  kmeans = KMeans(n_clusters=k, random_state=0).fit(X)
+  return kmeans
 
 def assign_kmeans(km=None,X=None):
-  pass
-  # For each of the points in X, assign one of the means
-  # refer to predict() function of the KMeans in sklearn
-  # write your code ...
-  ypred = None
+  ypred = km.predict(X)
   return ypred
 
 def compare_clusterings(ypred_1=None,ypred_2=None):
-  pass
-  # refer to sklearn documentation for homogeneity, completeness and vscore
-  h,c,v = 0,0,0 # you need to write your code to find proper values
+  h = homogeneity_score(ypred_1,ypred_2)
+  c =completeness_score(ypred_1,ypred_2)
+  v = v_measure_score(ypred_1,ypred_2)
   return h,c,v
-
-X,y=get_data_mnist()
-
-print(X.shape)
-print(y.shape)
 
 
 
@@ -192,6 +171,51 @@ def create_dataloaders(train_data, test_data, batch_size=32):
 
 train_loader,test_loader=create_dataloaders(train_data,test_data)
 
+def get_mnist_tensor():
+    X, y = load_digits(return_X_y=True)
+    return X,y
+
+X,y=get_mnist_tensor()
+
+print(X.shape)
+print(y.shape)
+
+df = pd.DataFrame(X)
+#df.head()
+
+data=df
+X = data.to_numpy()
+print("X.shape, y.shape", X.shape,y.shape)
+
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
+
+print(X_train.shape, y_train.shape)
+print(X_test.shape, y_test.shape)
+
+n_train = X_train.shape[0]
+
+X_train = torch.tensor(X_train, dtype=torch.float)
+y_train = torch.tensor(y_train, dtype=torch.float).view(-1,1)
+X_test = torch.tensor(X_test, dtype=torch.float)
+y_test = torch.tensor(y_test, dtype=torch.float).view(-1,1)
+
+batch_size=10
+train_data = torch.utils.data.TensorDataset(X_train, y_train)
+test_data = torch.utils.data.TensorDataset(X_test, y_test)
+
+train_loader = torch.utils.data.DataLoader(train_data, batch_size=batch_size, shuffle=True)
+test_loader = torch.utils.data.DataLoader(test_data,batch_size=batch_size, shuffle=True)
+
+for X, y in train_loader:
+        print(f"Shape of X [N, C, H, W]: {X.shape}")
+        print(f"Shape of y: {y.shape} {y.dtype}")
+        break
+
+def cross_entropy(y_pred,y):
+    v=-(y*torch.log(y_pred+0.00001))
+    v.torch.mean(v)
+    return v
+
 class MyNN(nn.Module):
     def __init__(self,inp_dim=64,hid_dim=13,num_classes=10):
         super(MyNN,self).__init__()
@@ -220,7 +244,7 @@ class MyNN(nn.Module):
     def loss_fn(self,x,yground,y_pred,xencdec):
         # class prediction loss
         # yground needs to be one hot encoded - write your code
-        lc1 = None # write your code for cross entropy between yground and y_pred, advised to use torch.mean()
+        lc1 = cross_entropy(y_pred,yground) # write your code for cross entropy between yground and y_pred, advised to use torch.mean()
         
         # auto encoding loss
         lc2 = torch.mean((x - xencdec)**2)
@@ -236,18 +260,14 @@ def get_mynn(inp_dim=64,hid_dim=13,num_classes=10):
 
 mynn=get_mynn()
 
-def get_mnist_tensor():
-  # download sklearn mnist
-  # convert to tensor
-  X, y = None, None
-  # write your code
-  return X,y
-
 def get_loss_on_single_point(mynn,x0,y0):
-  y_pred, xencdec = mynn(x0)
-  lossval = mynn.loss_fn(x0,y0,y_pred,xencdec)
-  # the lossval should have grad_fn attribute set
-  return lossval
+    y_pred, xencdec = mynn(x0)
+    lossval = mynn.loss_fn(x0,y0,y_pred,xencdec)
+    # the lossval should have grad_fn attribute set
+    return lossval
+
+x0,y0=X_train[0],X_train[0]
+loss_single_point=get_loss_on_single_point(mynn,x0,y0)
 
 def train_combined_encdec_predictor(mynn,X,y, epochs=11):
   # X, y are provided as tensor
