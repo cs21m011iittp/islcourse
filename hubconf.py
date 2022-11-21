@@ -81,6 +81,44 @@ def get_metrics(model1=None,X=None,y=None):
 
 
 
+def get_paramgrid_lr():
+  mlp_prmtr_lr = {
+    'solver' : ['lbfgs'],
+    'max_iter' : [100,110,120,130,140],
+    'alpha' : 10.0 ** -np.arange(1,10),
+    'hidden_layer_sizes' : np.arange(10,15),
+    'random_state' : [0,1,2,3,4]   
+  }
+  return mlp_prmtr_lr
+
+def get_paramgrid_rf():
+  mlp_prmtr_rf = {
+    'solver' : ['lbfgs'],
+    'max_iter' : [100,110,120,130,140],
+    'alpha' : 10.0 ** -np.arange(1,10),
+    'hidden_layer_sizes' : np.arange(10,15),
+    'random_state' : [0,1,2,3,4]   
+  }
+  return mlp_prmtr_rf
+  
+
+def perform_gridsearch_cv_multimetric(model1=None, param_grid=None, cv=5, X=None, y=None, metrics=['accuracy','roc_auc']):
+    grid = GridSearchCV(SVC(), lt_dict=get_paramgrid_lr(), refit = True, verbose = 3)
+    grid.fit(x_train, y_train)
+    #print(grid.best_params_)
+
+    rndm_model_grid = RandomForestClassifier(random_state=42)
+    rndm_model_gridCV = GridSearchCV(estimator = rndm_model_grid,rf_dict=get_paramgrid_rf(), cv = 5)
+    rndm_model_gridCV.fit(x_train,y_train)
+
+    #print(rndm_model_gridCV.best_params_)
+
+    test_scores=[]
+    test_scores.append(grid.best_params_)
+    test_scores.append(rndm_model_gridCV.best_params_)
+
+    return test_scores
+
 
 """# Part3"""
 import torch
