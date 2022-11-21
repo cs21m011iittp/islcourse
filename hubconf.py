@@ -122,15 +122,16 @@ def get_paramgrid_rf():
   }
   return mlp_prmtr_rf
   
-
-def perform_gridsearch_cv_multimetric(model1=None, param_grid=None, cv=5, X=None, y=None, metrics=['accuracy','roc_auc']):
+def perform_gridsearch_cv_multimetric(model1=None, param_grid=None, cv=5, X=Xtrain, y=ytrain, metrics=['accuracy','roc_auc']):
+    #GSCV for logistic regression
     grid = GridSearchCV(SVC(), lt_dict=get_paramgrid_lr(), refit = True, verbose = 3)
-    grid.fit(x_train, y_train)
+    grid.fit(X, y)
     #print(grid.best_params_)
 
+    #GSCV for random forest
     rndm_model_grid = RandomForestClassifier(random_state=42)
     rndm_model_gridCV = GridSearchCV(estimator = rndm_model_grid,rf_dict=get_paramgrid_rf(), cv = 5)
-    rndm_model_gridCV.fit(x_train,y_train)
+    rndm_model_gridCV.fit(X,y)
 
     #print(rndm_model_gridCV.best_params_)
 
