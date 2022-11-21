@@ -100,12 +100,7 @@ from sklearn.datasets import load_digits
 from sklearn import svm, metrics
 
 x,y = get_data_mnist()
-digits=load_digits()
 
-X_data = digits.data
-Y_data = digits.target
-
-x_train, x_test, y_train, y_test = train_test_split(X_data,Y_data, random_state=42)
 
 def get_paramgrid_lr():
   mlp_prmtr_lr = {
